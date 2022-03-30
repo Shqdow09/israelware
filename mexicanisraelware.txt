@@ -5506,6 +5506,7 @@ end
             if IsAlive(LocalPlayer) then
                 for i,v in pairs(game.Players:GetPlayers()) do
                     if IsAlive(v) and GetTeam(v) ~= GetTeam(LocalPlayer) then
+					    wait(0.2)
                         local NewBacktrackPart = Instance.new("Part")
                         NewBacktrackPart.Name = v.Name
                         NewBacktrackPart.Anchored = true
@@ -5548,8 +5549,15 @@ Client.grenadeallowed = function(...)
 	end      
 
 	return oldgrenadeallowed(...)      
-end      
-
+end
+client:Element("Toggle", "Remove Preparation")
+if values.misc.client["Remove Preparation"].Toggle then
+    if values.misc.client["Remove Preparation"].Active then
+	    if game:FindFirstChild("Workspace"):FindFirstChild("Status"):FindFirstChild("Preparation") then
+            WorkSpace.Status.Preparation.Value = false
+        end
+	end
+end
 
 local movement = misc:Sector("movement", "Left")      
 movement:Element("Toggle", "bunny hop")      
@@ -6198,7 +6206,7 @@ RunService.RenderStepped:Connect(function(step)
 											INSERT(Hitboxes, Player.Character.LowerTorso)      
 										end
 										if Hitbox == "backtrackh" then
-										    INSERT(Hitboxes, NewBacktrackPart.Cframe)
+										    INSERT(Hitboxes, NewBacktrackPart.CFrame.p)
 										end
 									else      
 										if Hitbox == "torso" then      
@@ -6208,7 +6216,7 @@ RunService.RenderStepped:Connect(function(step)
 										elseif not values.rage.aimbot["auto baim"].Toggle or Player.Character:FindFirstChild("FakeHead") then      
 											INSERT(Hitboxes, Player.Character.Head)
 										else
-										    INSERT(Hitboxes, NewBacktrackPart.Cframe)	
+										    INSERT(Hitboxes, NewBacktrackPart.CFrame.p)	
 										end      
 									end      
 								end      
@@ -6222,7 +6230,7 @@ RunService.RenderStepped:Connect(function(step)
 										local Hits = {}      
 										local EndHit, Hit, Pos
 										local penmodifier = 0.01
-										local Penetration = Client.gun.Penetration.Value * 0.1     
+										local Penetration = Client.gun.Penetration.Value * 0.01     
 										local Ray1 = RAY(Origin, (Hitbox.Position - Origin).unit * (Hitbox.Position - Origin).magnitude)      
 										repeat      
 											Hit, Pos = workspace:FindPartOnRayWithIgnoreList(Ray1, Ignore2, false, true)      
@@ -6369,7 +6377,7 @@ RunService.RenderStepped:Connect(function(step)
 													if values.rage.aimbot["automatic fire"].Dropdown == "israelwareNoTP" then            
 														if values.rage.exploits["custom tap"].Toggle and values.rage.exploits["custom tap"].Active then
 															for i = 1,values.rage.exploits["custom tap amount"].Slider,1 do
-															    FireRate = 0.09
+															    FireRate = 0.12
                                                                 EquipTime = 0
                                                                 for i,v in pairs(game.ReplicatedStorage.Weapons:GetChildren()) do
                                                                     if v:FindFirstChild("Ammo") and v:FindFirstChild("Recoil") then
@@ -6380,7 +6388,7 @@ RunService.RenderStepped:Connect(function(step)
 																Client.firebullet()  
 															end 
 														else
-														    FireRate = 0.09
+														    FireRate = 0.12
                                                             EquipTime = 0
                                                             for i,v in pairs(game.ReplicatedStorage.Weapons:GetChildren()) do
                                                                 if v:FindFirstChild("Ammo") and v:FindFirstChild("Recoil") then
@@ -6395,8 +6403,7 @@ RunService.RenderStepped:Connect(function(step)
 													break      
 												end      
 											else     
-												local penmodifier2 = 0.1
-												local penetration = Client.gun.Penetration.Value * 0.1      
+												local penetration = Client.gun.Penetration.Value * 0.01      
 												local limit = 0      
 												local dmgmodifier = 1    
 												for i = 1, #Hits do      
@@ -6562,7 +6569,7 @@ RunService.RenderStepped:Connect(function(step)
 													if values.rage.aimbot["automatic fire"].Dropdown == "israelwareNoTP" then            
 														if values.rage.exploits["custom tap"].Toggle and values.rage.exploits["custom tap"].Active then
 															for i = 1,values.rage.exploits["custom tap amount"].Slider,1 do
-															    FireRate = 0.09
+															    FireRate = 0.12
                                                                 EquipTime = 0
                                                                 for i,v in pairs(game.ReplicatedStorage.Weapons:GetChildren()) do
                                                                     if v:FindFirstChild("Ammo") and v:FindFirstChild("Recoil") then
@@ -6573,7 +6580,7 @@ RunService.RenderStepped:Connect(function(step)
 																Client.firebullet()  
 															end 
 														else
-														    FireRate = 0.09
+														    FireRate = 0.12
                                                             EquipTime = 0
                                                             for i,v in pairs(game.ReplicatedStorage.Weapons:GetChildren()) do
                                                                 if v:FindFirstChild("Ammo") and v:FindFirstChild("Recoil") then
