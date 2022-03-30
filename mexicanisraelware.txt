@@ -5553,6 +5553,7 @@ end
 client:Element("Toggle", "Remove Preparation")
 if values.misc.client["Remove Preparation"].Toggle then
     if values.misc.client["Remove Preparation"].Active then
+	    local WorkSpace = game:FindFirstChild("Workspace")
 	    if game:FindFirstChild("Workspace"):FindFirstChild("Status"):FindFirstChild("Preparation") then
             WorkSpace.Status.Preparation.Value = false
         end
