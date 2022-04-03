@@ -4683,12 +4683,12 @@ local sniper = main:Tab("sniper")
 local function AddLegit(Tab)      
 	Tab:Element("Jumbobox", "conditions", {options = {"visible", "standing", "blind", "smoke"}})      
 	Tab:Element("Dropdown", "target", {options = {"crosshair", "health", "distance"}})      
-	Tab:Element("Dropdown", "hitbox", {options = {"closest", "head", "chest"}})      
+	Tab:Element("Dropdown", "hitbox", {options = {"closest", "head", "chest", "backtrackh"}})      
 	Tab:Element("Slider", "field of view", {min = 30, max = 420, default = 120})      
 	Tab:Element("Slider", "smoothing", {min = 1, max = 50, default = 1})      
 	Tab:Element("Toggle", "silent aim")      
 	Tab:Element("Slider", "hitchance", {min = 1, max = 100, default = 100})      
-	Tab:Element("Dropdown", "priority", {options = {"closest", "head", "chest"}})      
+	Tab:Element("Dropdown", "priority", {options = {"closest", "head", "chest", "backtrackh"}})      
 	Tab:Element("Toggle", "triggerbot")      
 	Tab:Element("Slider", "delay (ms)", {min = 0, max = 300, default = 200})      
 	Tab:Element("Slider", "minimum dmg", {min = 0, max = 100, default = 15})      
@@ -4720,6 +4720,8 @@ aimbot:Element("Toggle", "silent aim")
 aimbot:Element("Dropdown", "automatic fire", {options = {"off", "standard", "hitpart", "israelware", "israelwareNoTP"}})      
 aimbot:Element("Toggle", "automatic penetration")      
 aimbot:Element("Jumbobox", "resolver", {options = {"pitch", "roll","animation"}})
+aimbot:Element("Toggle", "autowall")
+aimbot:Element("Dropdown", "autowall type", {options = {"off", "standard", "israelware", "israelware+"}})
 aimbot:Element("Toggle", "delay shot")      
 aimbot:Element("Toggle", "force hit")      
 aimbot:Element("Toggle", "sex package")      
@@ -4765,7 +4767,7 @@ local awp = weapons:Tab("awp")
 local auto = weapons:Tab("auto")      
 
 local function AddRage(Tab)      
-	Tab:Element("Jumbobox", "hitboxes", {options = {"head", "backtrackh", "torso", "pelvis"}})      
+	Tab:Element("Jumbobox", "hitboxes", {options = {"head", "backtrackh", "left arm", "right arm", "torso", "pelvis"}})      
 	Tab:Element("Toggle", "prefer body")      
 	Tab:Element("Slider", "minimum damage", {min = -100, max = 100, default = 20})      
 	Tab:Element("Slider", "max fov", {min = 1, max = 180, default = 180})      
@@ -4809,7 +4811,7 @@ antiaim:Element("Toggle", "fake duck",{},function(tbl)
 		end)
 	end
 end)    
-antiaim:Element("Dropdown", "yaw base", {options = {"camera", "targets", "spin", "random", "double", "switch", "defensive", "keybind yaw", "3 head"}})     
+antiaim:Element("Dropdown", "yaw base", {options = {"camera", "targets", "spin", "random", "double", "switch", "defensive", "keybind yaw", "3 head", "RightLeft keybind yaw"}})     
 antiaim:Element("Slider", "yaw offset", {min = -180, max = 180, default = 0})
 antiaim:Element("ToggleKeybind", "reset yaw")      
 antiaim:Element("Toggle", "jitter")      
@@ -5058,7 +5060,8 @@ players:Element("ToggleColor", "chams", nil, function(tbl)
 			end      
 		end      
 	end      
-end)  
+end)
+players:Element("Slider", "Chams transparency", {min = 0, max = 10})  
 players:Element("Toggle","invisible chams")         
 
 local effects = visuals:Sector("effects", "Right")      
@@ -5503,6 +5506,7 @@ end
 
 
         Backtracking = RunService.RenderStepped:Connect(function()
+		    wait(0.1)
             if IsAlive(LocalPlayer) then
                 for i,v in pairs(game.Players:GetPlayers()) do
                     if IsAlive(v) and GetTeam(v) ~= GetTeam(LocalPlayer) then
@@ -5550,21 +5554,26 @@ Client.grenadeallowed = function(...)
 
 	return oldgrenadeallowed(...)      
 end
-client:Element("Toggle", "Remove Preparation")
-if values.misc.client["Remove Preparation"].Toggle then
-    if values.misc.client["Remove Preparation"].Active then
-	    local WorkSpace = game:FindFirstChild("Workspace")
-	    if game:FindFirstChild("Workspace"):FindFirstChild("Status"):FindFirstChild("Preparation") then
-            WorkSpace.Status.Preparation.Value = false
-        end
-	end
-end
+client:Element("Toggle", "Remove Preparation",{},function(val)
+    if val.Toggle then
+        RPLoop = game.Workspace:FindFirstChild("Status"):FindFirstChild("Preparation"):GetPropertyChangedSignal("Value"):Connect(function()
+            pcall(function()
+			    print("does this work")
+                if game.Workspace:FindFirstChild("Status"):FindFirstChild("Preparation").Value == true then
+                    game.Workspace.Status.Preparation.Value = false
+                end
+            end)
+        end)
+    elseif not val.Toggle and RPLoop then
+        RPLoop:Disconnect()
+    end
+end)
 
 local movement = misc:Sector("movement", "Left")      
 movement:Element("Toggle", "bunny hop")      
 movement:Element("Dropdown", "direction", {options = {"forward", "directional", "directional 2"}})      
 movement:Element("Dropdown", "type", {options = {"gyro", "cframe"}})      
-movement:Element("Slider", "speed", {min = 0, max = 100, default = 40})      
+movement:Element("Slider", "speed", {min = 0, max = 120, default = 40})      
 movement:Element("ToggleKeybind", "jump bug")      
 movement:Element("ToggleKeybind", "edge jump")      
 movement:Element("ToggleKeybind", "edge bug")    
@@ -6200,14 +6209,25 @@ RunService.RenderStepped:Connect(function(step)
 								for _,Hitbox in ipairs(Stats.hitboxes.Jumbobox) do      
 									if Stats["prefer body"].Toggle then      
 										if Hitbox == "head" and (not values.rage.aimbot["auto baim"].Toggle or Player.Character:FindFirstChild("FakeHead")) then      
-											INSERT(Hitboxes, Player.Character.Head)     
+											INSERT(Hitboxes, Player.Character.Head)
+											INSERT(Hitboxes, NewBacktrackPart)
 										elseif Hitbox == "torso" then      
 											INSERT(Hitboxes, Player.Character.UpperTorso)      
 										else      
 											INSERT(Hitboxes, Player.Character.LowerTorso)      
 										end
 										if Hitbox == "backtrackh" then
-										    INSERT(Hitboxes, NewBacktrackPart.CFrame.p)
+										    INSERT(Hitboxes, NewBacktrackPart)
+										end
+										if Hitbox == "left arm" then
+										    INSERT(Hitboxes, Player.Character.LeftUpperArm)
+										else 
+										    INSERT(Hitboxes, Player.Character.LeftLowerArm)
+										end
+										if Hitbox == "right arm" then
+										    INSERT(Hitboxes, Player.Character.RightUpperArm)
+										else 
+										    INSERT(Hitboxes, Player.Character.RightLowerArm)
 										end
 									else      
 										if Hitbox == "torso" then      
@@ -6216,9 +6236,20 @@ RunService.RenderStepped:Connect(function(step)
 											INSERT(Hitboxes, Player.Character.LowerTorso)      
 										elseif not values.rage.aimbot["auto baim"].Toggle or Player.Character:FindFirstChild("FakeHead") then      
 											INSERT(Hitboxes, Player.Character.Head)
+											INSERT(Hitboxes, NewBacktrackPart)
 										else
-										    INSERT(Hitboxes, NewBacktrackPart.CFrame.p)	
-										end      
+										    INSERT(Hitboxes, NewBacktrackPart)	
+										end
+										if Hitbox == "left arm" then
+										    INSERT(Hitboxes, Player.Character.LeftUpperArm)
+										else 
+										    INSERT(Hitboxes, Player.Character.LeftLowerArm)
+										end
+										if Hitbox == "right arm" then
+										    INSERT(Hitboxes, Player.Character.RightUpperArm)
+										else 
+										    INSERT(Hitboxes, Player.Character.RightLowerArm)
+										end
 									end      
 								end      
 
@@ -6316,7 +6347,7 @@ RunService.RenderStepped:Connect(function(step)
 														if values.rage.exploits["custom tap"].Toggle and values.rage.exploits["custom tap"].Active then
 															for i = 1,values.rage.exploits["custom tap amount"].Slider,1 do
 															    Client.firebullet()
-																FireRate = 0.09
+																FireRate = 0.12
                                                                 EquipTime = 0
                                                                 for i,v in pairs(game.ReplicatedStorage.Weapons:GetChildren()) do
                                                                     if v:FindFirstChild("Ammo") and v:FindFirstChild("Recoil") then
@@ -6345,7 +6376,7 @@ RunService.RenderStepped:Connect(function(step)
 			                                                    wait(0.4)
 															end 
 														else
-														    FireRate = 0.09
+														    FireRate = 0.12
                                                             EquipTime = 0
                                                             for i,v in pairs(game.ReplicatedStorage.Weapons:GetChildren()) do
                                                                 if v:FindFirstChild("Ammo") and v:FindFirstChild("Recoil") then
@@ -6411,15 +6442,68 @@ RunService.RenderStepped:Connect(function(step)
 													local data = Hits[i]      
 													local part = data["Hit"]      
 													local pos = data["Position"]      
-													local modifier = 1      
+													local modifier = 1
+													local autowallmod1 = 0
+													local autowallmod2 = 0
 													if part.Material == Enum.Material.DiamondPlate then
-													    modifier = 3
+													    if values.rage.aimbot["autowall"].Toggle and values.rage.aimbot["autowall"].Active then
+														    if values.rage.aimbot["autowall type"].Dropdown == "slight" then
+															    autowallmod1 = 0.4
+																modifier = 3 - autowallmod1
+															elseif values.rage.aimbot["autowall type"].Dropdown == "off" then
+															    autowallmod1 = 0
+																modifier = 3 - autowallmod1
+															end
+															if values.rage.aimbot["autowall type"].Dropdown == "israelware" then
+															    autowallmod1 = 0.7
+																modifier = 3 - autowallmod1
+															elseif values.rage.aimbot["autowall type"].Dropdown == "israelware+" then
+															    autowallmod1 = 1
+																modifier = 3 - autowallmod1
+															end
+														else
+													        modifier = 3
+														end
 													end 
-													if part.Material == Enum.Material.CorrodedMetal or part.Material == Enum.Material.Metal or part.Material == Enum.Material.Brick or part.Material == Enum.Material.Concrete then 
-														modifier = 2
+													if part.Material == Enum.Material.CorrodedMetal or part.Material == Enum.Material.Metal or part.Material == Enum.Material.Brick or part.Material == Enum.Material.Concrete then
+													    if values.rage.aimbot["autowall"].Toggle and values.rage.aimbot["autowall"].Active then
+														    if values.rage.aimbot["autowall type"].Dropdown == "slight" then
+															    autowallmod2 = 0.2
+																modifier = 2 - autowallmod2
+															elseif values.rage.aimbot["autowall type"].Dropdown == "off" then
+															    autowallmod2 = 0
+																modifier = 2 - autowallmod2
+															end
+															if values.rage.aimbot["autowall type"].Dropdown == "israelware" then
+															    autowallmod2 = 0.5
+																modifier = 3 - autowallmod2
+															elseif values.rage.aimbot["autowall type"].Dropdown == "israelware+" then
+															    autowallmod2 = 0.7
+																modifier = 3 - autowallmod2
+															end
+														else
+														    modifier = 2
+														end
 													end 
 													if part.Name == "Grate" or part.Material == Enum.Material.Wood or part.Material == Enum.Material.WoodPlanks then 
-														modifier = 0.1
+														if values.rage.aimbot["autowall"].Toggle and values.rage.aimbot["autowall"].Active then
+														    if values.rage.aimbot["autowall type"].Dropdown == "slight" then
+															    autowallmod3 = 0.02
+																modifier = 0.1 - autowallmod3
+															elseif values.rage.aimbot["autowall type"].Dropdown == "off" then
+															    autowallmod3 = 0
+																modifier = 0.1 - autowallmod3
+															end
+															if values.rage.aimbot["autowall type"].Dropdown == "israelware" then
+															    autowallmod3 = 0.05
+																modifier = 0.1 - autowallmod3
+															elseif values.rage.aimbot["autowall type"].Dropdown == "israelware+" then
+															    autowallmod3 = 0.07
+																modifier = 0.1 - autowallmod3
+															end
+														else
+														    modifier = 0.1
+														end
 													end
 													if part.Name == "nowallbang" then      
 														modifier = 100      
@@ -6725,17 +6809,24 @@ RunService.RenderStepped:Connect(function(step)
 										if onScreen then      
 											local Magnitude = (Vec2(Pos.X, Pos.Y) - Vec2(Mouse.X, Mouse.Y)).Magnitude      
 											if Magnitude < Stats["field of view"].Slider then      
-												local Hitbox = Stats.hitbox.Dropdown == "head" and Player.Character.Head or Stats.hitbox.Dropdown == "chest" and Player.Character.UpperTorso      
+												local Hitbox = Stats.hitbox.Dropdown == "head" and Player.Character.Head or Stats.hitbox.Dropdown == "chest" and Player.Character.UpperTorso or Stats.hitbox.Dropdown == "backtrackh" and NewBacktrackPart    
 												if Stats.hitbox.Dropdown == "closest" then      
 													local HeadPos = Camera:WorldToViewportPoint(Player.Character.Head.Position)      
-													local TorsoPos = Camera:WorldToViewportPoint(Player.Character.UpperTorso.Position)      
+													local TorsoPos = Camera:WorldToViewportPoint(Player.Character.UpperTorso.Position)
+													local BacktrackHPos = Camera:WorldToViewportPoint(NewBacktrackPart.Position)
 													local HeadDistance = (Vec2(HeadPos.X, HeadPos.Y) - Vec2(Mouse.X, Mouse.Y)).Magnitude      
-													local TorsoDistance = (Vec2(TorsoPos.X, TorsoPos.Y) - Vec2(Mouse.X, Mouse.Y)).Magnitude      
+													local TorsoDistance = (Vec2(TorsoPos.X, TorsoPos.Y) - Vec2(Mouse.X, Mouse.Y)).Magnitude
+													local BacktrackHPos = (Vec2(BacktrackHPos.X, BacktrackHPos.Y) - Vec2(Mouse.X, Mouse.Y)).Magnitude
 													if HeadDistance < TorsoDistance then      
 														Hitbox = Player.Character.Head      
 													else      
 														Hitbox = Player.Character.UpperTorso      
-													end      
+													end
+													if BacktrackHPos < HeadDistance then
+													    Hitbox = NewBacktrackPart
+													else
+													    Hitbox = Player.Character.Head
+													end
 												end      
 												if Hitbox ~= nil then      
 													if not TBLFIND(Stats.conditions.Jumbobox, "visible") then      
@@ -6866,6 +6957,30 @@ RunService.RenderStepped:Connect(function(step)
                 		end
                 		if UserInputService:IsKeyDown("D") then
                 		Angle = -ATAN2(CamLook.Z, CamLook.X) + RAD(-90) + RAD(-90)
+                		elseif values.rage.angles["reset yaw"].Toggle and values.rage.angles["reset yaw"].Active then
+                		Angle = -ATAN2(CamLook.Z, CamLook.X) + RAD(-90) + RAD(0)
+                		end
+            		end
+			if values.rage.angles["yaw base"].Dropdown == "RightLeft keybind yaw" then 
+                		if UserInputService:IsKeyDown("A") then
+						    if UserInputService:IsKeyDown("W") then
+                		        Angle = -ATAN2(CamLook.Z, CamLook.X) + RAD(-90) + RAD(90)
+							elseif UserInputService:IsKeyDown("S") then
+							    Angle = -ATAN2(CamLook.Z, CamLook.X) + RAD(-90) + RAD(90)
+							elseif not UserInputService:IsKeyDown("S") or UserInputService:IsKeyDown("W") then
+							    Angle = -ATAN2(CamLook.Z, CamLook.X) + RAD(-90) + RAD(90)
+							end
+                		elseif values.rage.angles["reset yaw"].Toggle and values.rage.angles["reset yaw"].Active then
+                		Angle = -ATAN2(CamLook.Z, CamLook.X) + RAD(-90) + RAD(0)
+                		end
+                		if UserInputService:IsKeyDown("D") then
+						    if UserInputService:IsKeyDown("W") then
+                		        Angle = -ATAN2(CamLook.Z, CamLook.X) + RAD(-90) + RAD(-90)
+							elseif UserInputService:IsKeyDown("S") then
+							    Angle = -ATAN2(CamLook.Z, CamLook.X) + RAD(-90) + RAD(-90)
+							elseif not UserInputService:IsKeyDown("S") or UserInputService:IsKeyDown("W") then
+							    Angle = -ATAN2(CamLook.Z, CamLook.X) + RAD(-90) + RAD(-90)
+							end
                 		elseif values.rage.angles["reset yaw"].Toggle and values.rage.angles["reset yaw"].Active then
                 		Angle = -ATAN2(CamLook.Z, CamLook.X) + RAD(-90) + RAD(0)
                 		end
@@ -7154,14 +7269,21 @@ mt.__namecall = function(self, ...)
 													local Hitbox = Stats.priority.Dropdown == "head" and Player.Character.Head or Stats.priority.Dropdown == "chest" and Player.Character.UpperTorso      
 													if Stats.priority.Dropdown == "closest" then      
 														local HeadPos = Camera:WorldToViewportPoint(Player.Character.Head.Position)      
-														local TorsoPos = Camera:WorldToViewportPoint(Player.Character.UpperTorso.Position)      
+														local TorsoPos = Camera:WorldToViewportPoint(Player.Character.UpperTorso.Position)
+														local BacktrackHPos = Camera:WorldToViewportPoint(NewBacktrackPart.Position)
 														local HeadDistance = (Vec2(HeadPos.X, HeadPos.Y) - Vec2(Mouse.X, Mouse.Y)).Magnitude      
-														local TorsoDistance = (Vec2(TorsoPos.X, TorsoPos.Y) - Vec2(Mouse.X, Mouse.Y)).Magnitude      
+														local TorsoDistance = (Vec2(TorsoPos.X, TorsoPos.Y) - Vec2(Mouse.X, Mouse.Y)).Magnitude
+														local BacktrackHDistance = (Vec2(BacktrackHPos.X, BacktrackHPos.Y) - Vec2(Mouse.X, Mouse.Y)).Magnitude
 														if HeadDistance < TorsoDistance then      
 															Hitbox = Player.Character.Head      
 														else      
 															Hitbox = Player.Character.UpperTorso      
-														end      
+														end
+														if BacktrackHPos < HeadDistance then
+													        Hitbox = NewBacktrackPart
+													    else
+													        Hitbox = Player.Character.Head
+													    end
 													end      
 													if Hitbox ~= nil then      
 														if not TBLFIND(Stats.conditions.Jumbobox, "visible") then      
@@ -7965,7 +8087,7 @@ Players.PlayerAdded:Connect(function(Player)
 					VisibleCham.ZIndex = 8      
 					VisibleCham.Size = obj.Size + Vec3(0.1,0.1,0.1)      
 					VisibleCham.AlwaysOnTop = values.visuals.players["invisible chams"].Toggle      
-					VisibleCham.Transparency = 0      
+					VisibleCham.Transparency = values.visuals.players["Chams transparency"].Slider/10       
 
 					local WallCham = INST("BoxHandleAdornment")      
 					WallCham.Name = "WallCham"      
@@ -7973,7 +8095,7 @@ Players.PlayerAdded:Connect(function(Player)
 					WallCham.ZIndex = 5      
 					WallCham.Size = obj.Size + Vec3(0.1,0.1,0.1)      
 					WallCham.AlwaysOnTop = values.visuals.players["invisible chams"].Toggle      
-					WallCham.Transparency = 0.7      
+					WallCham.Transparency = values.visuals.players["Chams transparency"].Slider/10    
 
 					if values.visuals.players.chams.Toggle then      
 						if values.visuals.players.teammates.Toggle or Player.Team ~= LocalPlayer.Team then      
@@ -8072,7 +8194,7 @@ for _,Player in pairs(Players:GetPlayers()) do
 					VisibleCham.ZIndex = 5      
 					VisibleCham.Size = obj.Size + Vec3(0.1,0.1,0.1)      
 					VisibleCham.AlwaysOnTop = values.visuals.players["invisible chams"].Toggle      
-					VisibleCham.Transparency = 0      
+					VisibleCham.Transparency = values.visuals.players["Chams transparency"].Slider/10      
 
 					local WallCham = INST("BoxHandleAdornment")      
 					WallCham.Name = "WallCham"      
@@ -8080,7 +8202,7 @@ for _,Player in pairs(Players:GetPlayers()) do
 					WallCham.ZIndex = 5      
 					WallCham.Size = obj.Size + Vec3(0.1,0.1,0.1)      
 					WallCham.AlwaysOnTop = values.visuals.players["invisible chams"].Toggle      
-					WallCham.Transparency = 0.7      
+					WallCham.Transparency = values.visuals.players["Chams transparency"].Slider/10      
 
 					if values.visuals.players.chams.Toggle then      
 						if values.visuals.players.teammates.Toggle or Player.Team ~= LocalPlayer.Team then      
@@ -8127,7 +8249,7 @@ for _,Player in pairs(Players:GetPlayers()) do
 				VisibleCham.ZIndex = 5      
 				VisibleCham.Size = obj.Size + Vec3(0.1,0.1,0.1)      
 				VisibleCham.AlwaysOnTop = values.visuals.players["invisible chams"].Toggle      
-				VisibleCham.Transparency = 0      
+				VisibleCham.Transparency = values.visuals.players["Chams transparency"].Slider/10      
 
 				WallCham = INST("BoxHandleAdornment")      
 				WallCham.Name = "WallCham"      
@@ -8135,7 +8257,7 @@ for _,Player in pairs(Players:GetPlayers()) do
 				WallCham.ZIndex = 5      
 				WallCham.Size = obj.Size + Vec3(0.1,0.1,0.1)      
 				WallCham.AlwaysOnTop = values.visuals.players["invisible chams"].Toggle      
-				WallCham.Transparency = 0.7      
+				WallCham.Transparency = values.visuals.players["Chams transparency"].Slider/10      
 
 				if values.visuals.players.chams.Toggle then      
 					if values.visuals.players.teammates.Toggle or Player.Team ~= LocalPlayer.Team then      
